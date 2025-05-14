@@ -5,19 +5,19 @@ import (
 	"errors"
 )
 
-func Encipher(plaintext []byte, key byte) (ciphertext []byte) {
+func Encipher(plaintext []byte, key []byte) (ciphertext []byte) {
 	ciphertext = make([]byte, len(plaintext))
 	for i, b := range plaintext {
-		ciphertext[i] = b + key
+		ciphertext[i] = b + key[i % len(key)]
 	}
 	return ciphertext
 }
 
-func Decipher(ciphertext []byte, key byte) (plaintext []byte) {
+func Decipher(ciphertext []byte, key []byte) (plaintext []byte) {
 	plaintext = make([]byte, len(ciphertext))
 
 	for i, b := range ciphertext {
-		plaintext[i] = b - key
+		plaintext[i] = b - key[i % len(key)]
 	}
 	return plaintext
 }
@@ -25,7 +25,7 @@ func Decipher(ciphertext []byte, key byte) (plaintext []byte) {
 
 func Crack(ciphertext []byte, crib []byte) (key byte, err error) {
   for guess := range 256 {
-    result := Decipher(ciphertext[:len(crib)], byte(guess))
+    result := Decipher(ciphertext[:len(crib)], []byte{byte(guess)})
     if bytes.Equal(result, crib) {
       return byte(guess), nil
     }
