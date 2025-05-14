@@ -17,6 +17,11 @@ var cases = []struct {
 		plaintext:  []byte("HAL"),
 		ciphertext: []byte("IBM"),
 	},
+	{
+		key:         []byte{1, 2, 3},
+    plaintext:   []byte{0, 0, 0},
+    ciphertext:  []byte{1, 2, 3},
+  },
 //	{
 //		key:        2,
 //		plaintext:  []byte("SPEC"),
