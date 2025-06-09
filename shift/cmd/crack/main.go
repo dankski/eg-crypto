@@ -19,7 +19,6 @@ func main() {
 	}
 
 	ciphertext, err := io.ReadAll(os.Stdin)
-
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error reading ciphertext:", err)
 		os.Exit(1)
