@@ -31,6 +31,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	plaintext := shift.Decipher(ciphertext, byte(key))
+	plaintext := shift.Decipher(ciphertext, key)
 	os.Stdout.Write(plaintext)
 }
