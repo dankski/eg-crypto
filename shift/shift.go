@@ -5,6 +5,9 @@ import (
 	"errors"
 )
 
+
+const MaxKeyLen = 32
+
 func Encipher(plaintext []byte, key []byte) (ciphertext []byte) {
 	ciphertext = make([]byte, len(plaintext))
 	for i, b := range plaintext {
@@ -23,12 +26,21 @@ func Decipher(ciphertext []byte, key []byte) (plaintext []byte) {
 	return plaintext
 }
 
-func Crack(ciphertext []byte, crib []byte) (key byte, err error) {
-  for guess := range 256 {
-    result := Decipher(ciphertext[:len(crib)], []byte{byte(guess)})
-    if bytes.Equal(result, crib) {
-      return byte(guess), nil
-    }
-  }
-  return 0, errors.New("no key found")
+func Crack(ciphertext []byte, crib []byte) (key []byte, err error) {
+	for k:= range min(MaxKeyLen, len(ciphertext)) {
+
+  	for guess := range 256 {
+			result := ciphertext[k] - byte(guess)
+			if result == crib[k] {
+				key = append(key, byte(guess))
+				break
+			}
+  	}
+
+		if bytes.Equal(crib, Decipher(ciphertext[:len(crib)], key)) {
+			return key, nil
+		}
+
+	}
+  return nil, errors.New("no key found")
 }
