@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -9,16 +10,25 @@ import (
 	"github.com/dankski/shift"
 )
 
+
 func main() {
-	key := flag.Int("key", 1, "shift value")
+	keyHex := flag.String("key", "01", "key in hexadecimal (for example 'FF'")
+
 	flag.Parse()
-	plaintext, err := io.ReadAll(os.Stdin)
+
+	key, err := hex.DecodeString(*keyHex)
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	ciphertext := shift.Encipher(plaintext, byte(*key))
+	plaintext, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	ciphertext := shift.Encipher(plaintext, key)
 	os.Stdout.Write(ciphertext)
 }

@@ -22,6 +22,11 @@ var cases = []struct {
     plaintext:   []byte{0, 0, 0},
     ciphertext:  []byte{1, 2, 3},
   },
+	{
+		key:         []byte{1, 2},
+    plaintext:   []byte{0, 1, 2},
+    ciphertext:  []byte{1, 3, 3},
+  },
 //	{
 //		key:        2,
 //		plaintext:  []byte("SPEC"),

@@ -19,9 +19,9 @@ func Decipher(ciphertext []byte, key []byte) (plaintext []byte) {
 	for i, b := range ciphertext {
 		plaintext[i] = b - key[i % len(key)]
 	}
+
 	return plaintext
 }
-
 
 func Crack(ciphertext []byte, crib []byte) (key byte, err error) {
   for guess := range 256 {
