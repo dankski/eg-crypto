@@ -1,46 +1,43 @@
 package shift
 
 import (
-	"bytes"
+	"crypto/cipher"
 	"errors"
+	"fmt"
 )
 
-
 const MaxKeyLen = 32
+const BlockSize = 32
 
-func Encipher(plaintext []byte, key []byte) (ciphertext []byte) {
-	ciphertext = make([]byte, len(plaintext))
-	for i, b := range plaintext {
-		ciphertext[i] = b + key[i % len(key)]
-	}
-	return ciphertext
+var ErrKeySize = errors.New("shift: invalid key size")
+
+type shiftCipher struct {
+	key [BlockSize]byte
 }
 
-func Decipher(ciphertext []byte, key []byte) (plaintext []byte) {
-	plaintext = make([]byte, len(ciphertext))
-
-	for i, b := range ciphertext {
-		plaintext[i] = b - key[i % len(key)]
+func (c shiftCipher) Encrypt(dst, src []byte) {
+	for i, b := range src {
+		dst[i] = b + c.key[i]
 	}
-
-	return plaintext
 }
 
-func Crack(ciphertext []byte, crib []byte) (key []byte, err error) {
-	for k:= range min(MaxKeyLen, len(ciphertext)) {
-
-  	for guess := range 256 {
-			result := ciphertext[k] - byte(guess)
-			if result == crib[k] {
-				key = append(key, byte(guess))
-				break
-			}
-  	}
-
-		if bytes.Equal(crib, Decipher(ciphertext[:len(crib)], key)) {
-			return key, nil
-		}
-
+func (c shiftCipher) Decrypt(dst, src []byte) {
+	for i, b := range src {
+		dst[i] = b - c.key[i]
 	}
-  return nil, errors.New("no key found")
 }
+
+func (c shiftCipher) BlockSize() int {
+	return BlockSize
+}
+
+func NewCipher(key []byte) (cipher.Block, error) {
+	if len(key) != BlockSize {
+		return nil, fmt.Errorf("%w %d (must be %d)", ErrKeySize, len(key), BlockSize)
+	}
+
+	return &shiftCipher{
+		key: [BlockSize]byte(key),
+	}, nil
+}
+
