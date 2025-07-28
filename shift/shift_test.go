@@ -2,75 +2,94 @@ package shift_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/dankski/shift"
 )
 
-var cases = []struct {
-	key                   []byte
+var testKey = bytes.Repeat([]byte{1}, shift.BlockSize)
+
+var cipherCases = []struct {
 	plaintext, ciphertext []byte
 }{
 	{
-		key:        []byte{1},
-		plaintext:  []byte("HAL"),
-		ciphertext: []byte("IBM"),
+		plaintext:  []byte{0, 1, 2, 3, 4, 5},
+		ciphertext: []byte{1, 2, 3, 4, 5, 6},
 	},
-	{
-		key:         []byte{1, 2, 3},
-    plaintext:   []byte{0, 0, 0},
-    ciphertext:  []byte{1, 2, 3},
-  },
-	{
-		key:         []byte{1, 2},
-    plaintext:   []byte{0, 1, 2},
-    ciphertext:  []byte{1, 3, 3},
-  },
 }
 
-func TestEncipher(t *testing.T) {
+func TestEncrypt(t *testing.T) {
 	t.Parallel()
 
-	for _, tc := range cases {
-		name := fmt.Sprintf("%s + %d =  %s", tc.plaintext, tc.key, tc.ciphertext)
+	block, err := shift.NewCipher(testKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range cipherCases {
+		name := fmt.Sprintf("%x + %x = %x", tc.plaintext, testKey, tc.ciphertext)
 		t.Run(name, func(t *testing.T) {
-			got := shift.Encipher(tc.plaintext, tc.key)
+			got := make([]byte, len(tc.plaintext))
+			block.Encrypt(got, tc.plaintext)
 			if !bytes.Equal(tc.ciphertext, got) {
-				t.Errorf("want %q, got %q", tc.ciphertext, got)
+				t.Errorf("want %x, got %x", tc.ciphertext, got)
 			}
 		})
 	}
 }
 
-func TestDecipherWithKeyTransformsIBMToHal(t *testing.T) {
+func TestDecrypt(t *testing.T) {
 	t.Parallel()
-	for _, tc := range cases {
-		name := fmt.Sprintf("%s - %d = %s", tc.ciphertext, tc.key,
-			tc.plaintext)
+
+	block, err := shift.NewCipher(testKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range cipherCases {
+		name := fmt.Sprintf("%x - %x = %x", tc.ciphertext, testKey, tc.plaintext)
+
 		t.Run(name, func(t *testing.T) {
-			got := shift.Decipher(tc.ciphertext, tc.key)
+			got := make([]byte, len(tc.ciphertext))
+			block.Decrypt(got, tc.ciphertext)
 			if !bytes.Equal(tc.plaintext, got) {
-				t.Errorf("want %q, got %q", tc.plaintext, got)
+				t.Errorf("want %x, got %x", tc.plaintext, got)
 			}
 		})
 	}
 }
 
-func TestCrack(t *testing.T) {
-    t.Parallel()
-    for _, tc := range cases {
-        name := fmt.Sprintf("%s + %d = %s", tc.plaintext, tc.key, tc.ciphertext)
-        t.Run(name, func(t *testing.T) {
-            got, err := shift.Crack(tc.ciphertext, tc.plaintext[:3])
-            if err != nil { 
-                t.Fatal(err)
-            }
-            
-            if !bytes.Equal(tc.key, got) {
-                t.Fatalf("Want %d, got %d", tc.key, got)
-            }
-        })
-    }
+func TestNewCipherGivesNoErrorForValidKey(t *testing.T) {
+	t.Parallel()
+	_, err := shift.NewCipher(make([]byte, shift.BlockSize))
+	if err != nil {
+		t.Fatalf("want no error, got: %v", err)
+	}
 }
 
+func TestNewCipherGivesErrorForInvalidKey(t *testing.T) {
+	t.Parallel()
+	_, err := shift.NewCipher([]byte{})
+	if !errors.Is(err, shift.ErrKeySize) {
+		t.Errorf("want ErrKeySize, got %v", err)
+	}
+}
+
+
+func TestBlockSizeReturnsBlockSize(t *testing.T) {
+	t.Parallel()
+	block, err := shift.NewCipher(make([]byte, shift.BlockSize))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := shift.BlockSize
+	got := block.BlockSize()
+
+	if want != got {
+		t.Errorf("want %d, got %d", want, got)
+	}
+}
