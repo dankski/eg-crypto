@@ -10,7 +10,6 @@ import (
 	"github.com/dankski/shift"
 )
 
-
 func main() {
 	keyHex := flag.String("key", "01", "key in hexadecimal (for example 'FF'")
 
@@ -24,6 +23,12 @@ func main() {
 	}
 
 	plaintext, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	_block, err := shift.NewCipher(key)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

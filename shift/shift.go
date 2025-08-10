@@ -41,3 +41,26 @@ func NewCipher(key []byte) (cipher.Block, error) {
 	}, nil
 }
 
+type encrypter struct {
+	block     cipher.Block
+	blockSize int
+}
+
+func NewEncrypter(block cipher.Block) cipher.BlockMode {
+	return &encrypter{
+		block:     block,
+		blockSize: block.BlockSize(),
+	}
+}
+
+func (enc encrypter) BlockSize() int {
+	return enc.blockSize
+}
+
+func (enc encrypter) CryptBlocks(dst, src []byte) {
+	for len(src) > 0 {
+		enc.block.Encrypt(dst[:enc.blockSize], src[:enc.blockSize])
+		src = src[enc.blockSize:]
+		dst = dst[enc.blockSize:]
+	}
+}

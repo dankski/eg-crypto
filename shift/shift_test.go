@@ -77,7 +77,6 @@ func TestNewCipherGivesErrorForInvalidKey(t *testing.T) {
 	}
 }
 
-
 func TestBlockSizeReturnsBlockSize(t *testing.T) {
 	t.Parallel()
 	block, err := shift.NewCipher(make([]byte, shift.BlockSize))
@@ -91,5 +90,25 @@ func TestBlockSizeReturnsBlockSize(t *testing.T) {
 
 	if want != got {
 		t.Errorf("want %d, got %d", want, got)
+	}
+}
+
+func TestEncrypterEnciphersBlockAlignedMessage(t *testing.T) {
+	t.Parallel()
+
+	plaintext := []byte("This message is exactly 32 bytes")
+
+	block, err := shift.NewCipher(testKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	enc := shift.NewEncrypter(block)
+	want := []byte("Uijt!nfttbhf!jt!fybdumz!43!czuft")
+	got := make([]byte, 32)
+	enc.CryptBlocks(got, plaintext)
+
+	if !bytes.Equal(want, got) {
+		t.Errorf("want %x, got %x", want, got)
 	}
 }
